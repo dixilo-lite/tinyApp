@@ -25,8 +25,10 @@ app.get("/urls/:id", (req,res) => {
 
   res.render("urls_show",templateVars);
 })
+
+app.set("view engine","ejs");
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
 
-app.set("view engine","ejs");
