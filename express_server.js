@@ -2,10 +2,21 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 
+function generateRandomString() {
+  const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+  for (let i = 0; i <  6; i ++)
+  {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
+
 const urlDatabase = {
   v2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
+app.use(express.urlencoded({extende:true}));
 
 app.get("/",(req,res) => {
   res.send("Hello!");
@@ -14,6 +25,15 @@ app.get("/",(req,res) => {
 app.get("/urls", (req,res) => {
   const templateVars = {urls: urlDatabase};
   res.render("urls_index",templateVars);
+});
+
+app.post("/urls", (req,res) => {
+  console.log(req.body);
+  res.send("Ok");
+});
+
+app.get("/urls/new", (req,res) => {
+  res.render("urls_new");
 });
 
 app.get("/hello",(req,res) => {
