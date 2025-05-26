@@ -4,7 +4,7 @@ const PORT = 8080;
 
 function generateRandomString() {
   const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
+  let result='';
   for (let i = 0; i <  6; i ++)
   {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
@@ -13,10 +13,11 @@ function generateRandomString() {
 }
 
 const urlDatabase = {
-  v2xVn2: "http://www.lighthouselabs.ca",
+  b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
-app.use(express.urlencoded({extende:true}));
+
+app.use(express.urlencoded({extended:false}));
 
 app.get("/",(req,res) => {
   res.send("Hello!");
@@ -28,8 +29,10 @@ app.get("/urls", (req,res) => {
 });
 
 app.post("/urls", (req,res) => {
-  console.log(req.body);
-  res.send("Ok");
+  let shortKey= generateRandomString();
+  const newLongUrl= req.body.longURL;
+  urlDatabase[shortKey]= newLongUrl;
+  res.redirect(`/urls/${shortKey}`);
 });
 
 app.get("/urls/new", (req,res) => {
@@ -41,10 +44,25 @@ app.get("/hello",(req,res) => {
 });
 
 app.get("/urls/:id", (req,res) => {
-  const templateVars = {id: req.params.id,longURL: urlDatabase.id};
+  let id = req.params.id;
+  if(!urlDatabase[id])
+  {
+    return res.send('Not a valid short code.');
+  }
+  const templateVars = {id: req.params.id,longURL: urlDatabase[req.params.id]};
 
   res.render("urls_show",templateVars);
 })
+
+app.get("/u/:id", (req,res) => {
+  let id = req.params.id;
+
+  if(!urlDatabase[id]){
+    return res.send('Not a valid short code');
+  }
+  const longURL = urlDatabase[id];
+  res.redirect(longURL);
+});
 
 app.set("view engine","ejs");
 
