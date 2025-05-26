@@ -45,6 +45,7 @@ app.get("/hello",(req,res) => {
 
 app.get("/urls/:id", (req,res) => {
   let id = req.params.id;
+  let keys = Object.keys(urlDatabase);
   if(!urlDatabase[id])
   {
     return res.send('Not a valid short code.');
@@ -63,13 +64,20 @@ app.get("/u/:id", (req,res) => {
   const longURL = urlDatabase[id];
   res.redirect(longURL);
 });
+
 app.post("/urls/:id/delete", (req,res) =>
 {
   const id = req.params.id;
   delete urlDatabase[id];
   res.redirect('/urls');
-})
+});
 
+app.post("/urls/:id/edit", (req,res) => {
+  const id = req.params.id;
+  urlDatabase[id]= req.body.url;
+  console.log(req.body.url);
+   res.redirect(`/urls/${id}`);
+});
 app.set("view engine","ejs");
 
 app.listen(PORT, () => {
