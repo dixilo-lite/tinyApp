@@ -78,6 +78,13 @@ app.post("/urls/:id/edit", (req,res) => {
   console.log(req.body.url);
    res.redirect(`/urls/${id}`);
 });
+
+app.post("/login", (req,res) => {
+  const user = req.body.username;
+  res.cookie('username',user);
+  res.redirect("/urls");
+});
+
 app.set("view engine","ejs");
 
 app.listen(PORT, () => {
