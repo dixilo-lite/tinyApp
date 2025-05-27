@@ -1,6 +1,9 @@
 const express = require("express");
 const app = express();
 const PORT = 8080;
+var cookieParser = require('cookie-parser');
+
+app.use(cookieParser());
 
 function generateRandomString() {
   const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -24,7 +27,10 @@ app.get("/",(req,res) => {
 });
 
 app.get("/urls", (req,res) => {
-  const templateVars = {urls: urlDatabase};
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies["username"]
+  };
   res.render("urls_index",templateVars);
 });
 
