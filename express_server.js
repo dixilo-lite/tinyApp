@@ -49,6 +49,10 @@ app.get("/urls/new", (req,res) => {
   res.render("urls_new",templateVars);
 });
 
+app.get("/register",(req,res) => {
+  res.render("register");
+});
+
 app.get("/hello",(req,res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
