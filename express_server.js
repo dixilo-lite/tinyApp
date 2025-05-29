@@ -15,6 +15,19 @@ function generateRandomString() {
   return result;
 }
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
@@ -27,9 +40,10 @@ app.get("/",(req,res) => {
 });
 
 app.get("/urls", (req,res) => {
+  const id = req.cookies.user_id;
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"]
+    user: users[id],
   };
   res.render("urls_index",templateVars);
 });
@@ -42,9 +56,10 @@ app.post("/urls", (req,res) => {
 });
 
 app.get("/urls/new", (req,res) => {
+  const id = req.cookies.user_id;
    const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"]
+    user: users[id],
   };
   res.render("urls_new",templateVars);
 });
@@ -53,18 +68,36 @@ app.get("/register",(req,res) => {
   res.render("register");
 });
 
+app.post("/register", (req,res) => {
+  const id =generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  if (!email || !password){
+    return res.status(400).send("Please provide an email and password before you proceed");
+  }
+  const newUser ={
+    id,
+    email,
+    password,
+  };
+  users[id] = newUser;
+  
+  res.cookie("user_id",id);
+  res.redirect("/urls");
+});
 app.get("/hello",(req,res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.get("/urls/:id", (req,res) => {
   let id = req.params.id;
+  let user_id = req.cookies.user_id;
   let keys = Object.keys(urlDatabase);
   if(!urlDatabase[id])
   {
     return res.send('Not a valid short code.');
   }
-  const templateVars = {id: req.params.id,longURL: urlDatabase[req.params.id],username: req.cookies["username"]};
+  const templateVars = {id: req.params.id,longURL: urlDatabase[req.params.id], user:users[user_id]};
 
   res.render("urls_show",templateVars);
 })
@@ -94,13 +127,13 @@ app.post("/urls/:id/edit", (req,res) => {
 });
 
 app.post("/login", (req,res) => {
-  const user = req.body.username;
-  res.cookie('username',user);
+  const user = req.body.email;
+  res.cookie('email',user);
   res.redirect("/urls");
 });
 
 app.post("/logout", (req,res) => {
-  res.clearCookie('username');
+  res.clearCookie('email');
   res.redirect("/urls");
 })
 
