@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const PORT = 8080;
+const {getUserbyEmail} = require("./helper")
 var cookieParser = require('cookie-parser');
 
 app.use(cookieParser());
@@ -69,18 +70,27 @@ app.get("/register",(req,res) => {
 });
 
 app.post("/register", (req,res) => {
-  const id =generateRandomString();
+
   const email = req.body.email;
   const password = req.body.password;
   if (!email || !password){
-    return res.status(400).send("Please provide an email and password before you proceed");
+    return res
+    .status(400)
+    .send("Please provide an email and password before you proceed");
   }
+  let foundUser = getUserbyEmail(email,users)
+
+  if(foundUser){
+    return res.status(400).send("User with email exists");
+  }
+  const id =generateRandomString();
   const newUser ={
     id,
     email,
     password,
   };
   users[id] = newUser;
+
   
   res.cookie("user_id",id);
   res.redirect("/urls");
