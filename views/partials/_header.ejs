@@ -18,10 +18,10 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
         <% if (!user.email) { %>
         
-           <form method ="POST" action = "/login">
-           <label for="email">email</label>
-          <input type = "text" name ="email">
-          <button type ="submit">Login</button>
+           <form method ="POST" action = "/register">
+           <!--<label for="email">email</label>
+          <input type = "text" name ="email"> -->
+          <button type ="submit">Register</button>
         </form>
      
         <% } else { %>

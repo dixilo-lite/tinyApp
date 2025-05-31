@@ -4,8 +4,11 @@ const PORT = 8080;
 const {getUserbyEmail} = require("./helper")
 var cookieParser = require('cookie-parser');
 
+// middleware
 app.use(cookieParser());
+app.use(express.urlencoded({extended:false}));
 
+//generates random 6 character string
 function generateRandomString() {
   const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result='';
@@ -34,10 +37,15 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
-app.use(express.urlencoded({extended:false}));
+
 
 app.get("/",(req,res) => {
   res.send("Hello!");
+});
+
+app.get("/login",(req,res) => {
+  //res.send("Hello Login page");
+  res.render("login");
 });
 
 app.get("/urls", (req,res) => {
