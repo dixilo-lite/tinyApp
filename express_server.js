@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const PORT = 8080;
+const bcrypt = require ("bcryptjs");
 const {getUserbyEmail} = require("./helper")
 const {findUserID} = require("./findUserID");
 const {urlsForUser} = require("./urlsForUser");
@@ -68,14 +69,17 @@ app.post("/login", (req,res) => {
   const id = findUserID(email,users);
   const foundUser= getUserbyEmail(email,users);
   const userEmail = users[id].email;
-  const userPassword = users[id].password;
+  const userPassword = users[id].hashedPassword;
 
-  if(!foundUser || userEmail !== email || userPassword !== password)
+  console.log(`This is the entered password, ${password}, this is supposed to be the hashed password ${userPassword}`);
+  console.log(users);
+
+  if(!foundUser || userEmail !== email || bcrypt.compareSync(password,userPassword) === false)
   {
     res
     .status(403)
     .send("Please enter a valid email or password");
-  } else if (foundUser && userEmail === email && userPassword === password) {
+  } else if (foundUser && userEmail === email && bcrypt.compareSync(password,userPassword)) {
     res.cookie('user_id',id);
     res.redirect("/urls");
   }
@@ -138,24 +142,27 @@ app.post("/register", (req,res) => {
 
   const email = req.body.email;
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password,10);
   if (!email || !password){
     return res
     .status(400)
     .send("Please provide an email and password before you proceed");
   }
+  
   let foundUser = getUserbyEmail(email,users)
 
   if(foundUser){
     return res.status(400).send("User with email exists");
   }
+
   const id =generateRandomString();
 
   users[id] = {
     id,
     email,
-    password,
+    hashedPassword,
   };
-
+   
   
   res.cookie("user_id",id);
   res.redirect("/urls");
@@ -172,19 +179,20 @@ app.get("/urls/:id", (req,res) => {
     {
       return res.send('You do not have access to this url.');
     }
-  if(user_id){
-
-    const templateVars = {
+  if (urlDatabase[id].userID !== user_ID) {
+    res.send("You do not own a url with this ID");
+  }
+  if(!user_id){
+    res.send("Please log in to view the url");
+  } else {
+   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id].longURL,
     email: users[user_id].email,
-  };
-    
-    res.render("urls_show",templateVars);
-  } else {
   
-  res.send("Please log in to view the url");
   }
+   res.render("urls_show",templateVars);
+}
 });
 
 app.get("/u/:id", (req,res) => {
@@ -221,7 +229,7 @@ app.post("/urls/:id/edit", (req,res) => {
   if(!id)
   {
     res.send("ID doesn't exist");
-  } else if(!userID) {
+  } else if(!user_ID) {
     res.send("Please login first");
   } else if (urlDatabase[id].userID !== user_ID) {
     res.send("You do not own a url with this ID");
