@@ -84,24 +84,35 @@ app.get("/urls", (req,res) => {
     urls: urlDatabase,
     user: users[id],
     email: users[id].email,
-  };
-  
+  }; 
   res.render("urls_index",templateVars);
 } else {
-  res.send("Please login to see your list of URLS");
+  const templateVars = {
+    id,
+    urls: urlDatabase,
+    //user: users[id],
+  };
+  res.render("urls_index",templateVars);
 }
-
+//res.render("urls_index",templateVars);
 });
 
 app.post("/urls", (req,res) => {
+  let id =req.cookies.user_id;
+  if(!id)
+  {
+    res.send("Please login to shorten urls");
+  } else {
   let shortKey= generateRandomString();
   const newLongUrl= req.body.longURL;
   urlDatabase[shortKey]= newLongUrl;
   res.redirect(`/urls/${shortKey}`);
+  }
 });
 
 app.get("/urls/new", (req,res) => {
   const id = req.cookies.user_id;
+  if(id){
    const templateVars = {
     id,
     urls: urlDatabase,
@@ -109,6 +120,9 @@ app.get("/urls/new", (req,res) => {
     email: users[id].email,
   };
   res.render("urls_new",templateVars);
+} else {
+  res.redirect("/login");
+}
 });
 
 app.get("/register",(req,res) => {
@@ -156,12 +170,24 @@ app.get("/urls/:id", (req,res) => {
   {
     return res.send('Not a valid short code.');
   }
-  const templateVars = {id: req.params.id,longURL: urlDatabase[req.params.id],
-     user:users[user_id],
-    email:users[user_id].email};
+
+  if(user_id){
+    const templateVars = {
+    id: req.params.id,
+    longURL: urlDatabase[req.params.id],
+    email: users[user_id].email,
+  };
+    res.render("urls_show",templateVars);
+  
+  } else {
+  const templateVars = {
+    id: req.params.id,
+    longURL: urlDatabase[req.params.id],
+  };
 
   res.render("urls_show",templateVars);
-})
+  }
+});
 
 app.get("/u/:id", (req,res) => {
   let id = req.params.id;
