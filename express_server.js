@@ -68,18 +68,15 @@ app.post("/login", (req,res) => {
   const password = req.body.password;
   const id = findUserID(email,users);
   const foundUser= getUserbyEmail(email,users);
-  const userEmail = users[id].email;
-  const userPassword = users[id].hashedPassword;
+  const hashedPassword = users[id].hashedPassword;
 
-  console.log(`This is the entered password, ${password}, this is supposed to be the hashed password ${userPassword}`);
-  console.log(users);
 
-  if(!foundUser || userEmail !== email || bcrypt.compareSync(password,userPassword) === false)
+  if(!foundUser || bcrypt.compareSync(password,hashedPassword) === false)
   {
     res
     .status(403)
     .send("Please enter a valid email or password");
-  } else if (foundUser && userEmail === email && bcrypt.compareSync(password,userPassword)) {
+  } else if (foundUser  && bcrypt.compareSync(password,hashedPassword)) {
     res.cookie('user_id',id);
     res.redirect("/urls");
   }
@@ -112,6 +109,7 @@ app.post("/urls", (req,res) => {
   } else {
   let shortKey= generateRandomString();
   const newLongUrl= req.body.longURL;
+  urlDatabase[shortKey]={};
   urlDatabase[shortKey].longURL= newLongUrl;
   res.redirect(`/urls/${shortKey}`);
   }
