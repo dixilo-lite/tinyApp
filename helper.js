@@ -1,7 +1,6 @@
 const getUserbyEmail= (email, user) => {
   let found= null;
   let key = Object.keys(user);
-  console.log(user.userRandomID.email);
   
   for (const users of key)
   {  

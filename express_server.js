@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080;
 const {getUserbyEmail} = require("./helper")
 const {findUserID} = require("./findUserID");
+const {urlsForUser} = require("./urlsForUser");
 var cookieParser = require('cookie-parser');
 
 // middleware
@@ -21,8 +22,8 @@ function generateRandomString() {
 }
 
 const users = {
-  userRandomID: {
-    id: "userRandomID",
+  aJ48lW: {
+    id: "aJ48lW",
     email: "user@example.com",
     password: "purple-monkey-dinosaur",
   },
@@ -34,11 +35,15 @@ const users = {
 };
 
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
-
-
 
 app.get("/",(req,res) => {
   res.send("Hello!");
@@ -57,7 +62,7 @@ app.get("/login",(req,res) => {
   }
 });
 
-app.post("/login", (req,res) => {
+app.post("/login", (req,res) => { 
   const email = req.body.email;
   const password = req.body.password;
   const id = findUserID(email,users);
@@ -78,21 +83,19 @@ app.post("/login", (req,res) => {
 
 app.get("/urls", (req,res) => {
   const id = req.cookies.user_id;
+  const personalizedUrlList = urlsForUser(id,urlDatabase);
   if(id){
+
   const templateVars = {
     id,
-    urls: urlDatabase,
+    urls: personalizedUrlList,
     user: users[id],
     email: users[id].email,
   }; 
   res.render("urls_index",templateVars);
 } else {
-  const templateVars = {
-    id,
-    urls: urlDatabase,
-    //user: users[id],
-  };
-  res.render("urls_index",templateVars);
+  
+  res.send("Please login to view shortened urls");
 }
 //res.render("urls_index",templateVars);
 });
@@ -101,11 +104,11 @@ app.post("/urls", (req,res) => {
   let id =req.cookies.user_id;
   if(!id)
   {
-    res.send("Please login to shorten urls");
+    res.send("Please login to see shorten urls");
   } else {
   let shortKey= generateRandomString();
   const newLongUrl= req.body.longURL;
-  urlDatabase[shortKey]= newLongUrl;
+  urlDatabase[shortKey].longURL= newLongUrl;
   res.redirect(`/urls/${shortKey}`);
   }
 });
@@ -165,27 +168,22 @@ app.get("/hello",(req,res) => {
 app.get("/urls/:id", (req,res) => {
   let id = req.params.id;
   let user_id = req.cookies.user_id;
-  
   if(!urlDatabase[id])
-  {
-    return res.send('Not a valid short code.');
-  }
-
+    {
+      return res.send('You do not have access to this url.');
+    }
   if(user_id){
+
     const templateVars = {
     id: req.params.id,
-    longURL: urlDatabase[req.params.id],
+    longURL: urlDatabase[req.params.id].longURL,
     email: users[user_id].email,
   };
+    
     res.render("urls_show",templateVars);
-  
   } else {
-  const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id],
-  };
-
-  res.render("urls_show",templateVars);
+  
+  res.send("Please log in to view the url");
   }
 });
 
@@ -195,25 +193,44 @@ app.get("/u/:id", (req,res) => {
   if(!urlDatabase[id]){
     return res.send('Not a valid short code');
   }
-  const longURL = urlDatabase[id];
+  const longURL = urlDatabase[id].longURL;
   res.redirect(longURL);
 });
 
 app.post("/urls/:id/delete", (req,res) =>
-{
+{ 
+  const user_ID = req.cookies.user_id;
   const id = req.params.id;
+  if(!id)
+  {
+    res.send("ID doesn't exist");
+  } else if(!user_ID) {
+    res.send("Please login first");
+  } else if (urlDatabase[id].userID !== user_ID) {
+    res.send("You do not own a url with this ID");
+  } else {
+ 
   delete urlDatabase[id];
   res.redirect('/urls');
+  }
 });
 
 app.post("/urls/:id/edit", (req,res) => {
+  const user_ID = req.cookies.user_id;
   const id = req.params.id;
-  urlDatabase[id]= req.body.url;
+  if(!id)
+  {
+    res.send("ID doesn't exist");
+  } else if(!userID) {
+    res.send("Please login first");
+  } else if (urlDatabase[id].userID !== user_ID) {
+    res.send("You do not own a url with this ID");
+  } else {
+  urlDatabase[id].longURL= req.body.url;
   console.log(req.body.url);
    res.redirect(`/urls/${id}`);
+  }
 });
-
-
 
 app.post("/logout", (req,res) => {
   res.clearCookie('user_id');
