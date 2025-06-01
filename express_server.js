@@ -46,7 +46,7 @@ app.get("/",(req,res) => {
 
 app.get("/login",(req,res) => {
   const id = req.cookies.user_id;
-  console.log(id);
+  // if there's an existing user, pass the email and id of the user
   if(id){
     const templateVars= {id, 
     email: users[id].email};
@@ -55,34 +55,42 @@ app.get("/login",(req,res) => {
     const templateVars= {id};
     res.render("login", templateVars);
   }
-
 });
 
 app.post("/login", (req,res) => {
   const email = req.body.email;
   const password = req.body.password;
   const id = findUserID(email,users);
+  const foundUser= getUserbyEmail(email,users);
+  const userEmail = users[id].email;
+  const userPassword = users[id].password;
 
-  if(!getUserbyEmail(email,users) || users[id].email !== email || users[id].password !== password)
+  if(!foundUser || userEmail !== email || userPassword !== password)
   {
-    res.status(403).send("Please enter a valid email or password");
-  } else if (getUserbyEmail && users[id].email === email && users[id].password === password)
-  {
+    res
+    .status(403)
+    .send("Please enter a valid email or password");
+  } else if (foundUser && userEmail === email && userPassword === password) {
     res.cookie('user_id',id);
     res.redirect("/urls");
   }
-
 });
 
 app.get("/urls", (req,res) => {
   const id = req.cookies.user_id;
+  if(id){
   const templateVars = {
     id,
     urls: urlDatabase,
     user: users[id],
     email: users[id].email,
   };
+  
   res.render("urls_index",templateVars);
+} else {
+  res.send("Please login to see your list of URLS");
+}
+
 });
 
 app.post("/urls", (req,res) => {
@@ -124,12 +132,12 @@ app.post("/register", (req,res) => {
     return res.status(400).send("User with email exists");
   }
   const id =generateRandomString();
-  const newUser ={
+
+  users[id] = {
     id,
     email,
     password,
   };
-  users[id] = newUser;
 
   
   res.cookie("user_id",id);
