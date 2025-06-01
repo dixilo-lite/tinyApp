@@ -151,12 +151,14 @@ app.get("/hello",(req,res) => {
 app.get("/urls/:id", (req,res) => {
   let id = req.params.id;
   let user_id = req.cookies.user_id;
-  let keys = Object.keys(urlDatabase);
+  
   if(!urlDatabase[id])
   {
     return res.send('Not a valid short code.');
   }
-  const templateVars = {id: req.params.id,longURL: urlDatabase[req.params.id], user:users[user_id]};
+  const templateVars = {id: req.params.id,longURL: urlDatabase[req.params.id],
+     user:users[user_id],
+    email:users[user_id].email};
 
   res.render("urls_show",templateVars);
 })
