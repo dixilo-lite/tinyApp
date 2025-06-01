@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const {getUserbyEmail} = require("./helper")
+const {findUserID} = require("./findUserID");
 var cookieParser = require('cookie-parser');
 
 // middleware
@@ -44,15 +45,42 @@ app.get("/",(req,res) => {
 });
 
 app.get("/login",(req,res) => {
-  //res.send("Hello Login page");
-  res.render("login");
+  const id = req.cookies.user_id;
+  console.log(id);
+  if(id){
+    const templateVars= {id, 
+    email: users[id].email};
+    res.render("login", templateVars);
+  } else {
+    const templateVars= {id};
+    res.render("login", templateVars);
+  }
+
+});
+
+app.post("/login", (req,res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const id = findUserID(email,users);
+
+  if(!getUserbyEmail(email,users) || users[id].email !== email || users[id].password !== password)
+  {
+    res.status(403).send("Please enter a valid email or password");
+  } else if (getUserbyEmail && users[id].email === email && users[id].password === password)
+  {
+    res.cookie('user_id',id);
+    res.redirect("/urls");
+  }
+
 });
 
 app.get("/urls", (req,res) => {
   const id = req.cookies.user_id;
   const templateVars = {
+    id,
     urls: urlDatabase,
     user: users[id],
+    email: users[id].email,
   };
   res.render("urls_index",templateVars);
 });
@@ -67,14 +95,18 @@ app.post("/urls", (req,res) => {
 app.get("/urls/new", (req,res) => {
   const id = req.cookies.user_id;
    const templateVars = {
+    id,
     urls: urlDatabase,
     user: users[id],
+    email: users[id].email,
   };
   res.render("urls_new",templateVars);
 });
 
 app.get("/register",(req,res) => {
-  res.render("register");
+  const id = req.cookies.user_id;
+  const templateVars= {id};
+  res.render("register",templateVars);
 });
 
 app.post("/register", (req,res) => {
@@ -103,6 +135,7 @@ app.post("/register", (req,res) => {
   res.cookie("user_id",id);
   res.redirect("/urls");
 });
+
 app.get("/hello",(req,res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
@@ -144,15 +177,11 @@ app.post("/urls/:id/edit", (req,res) => {
    res.redirect(`/urls/${id}`);
 });
 
-app.post("/login", (req,res) => {
-  const user = req.body.email;
-  res.cookie('email',user);
-  res.redirect("/urls");
-});
+
 
 app.post("/logout", (req,res) => {
-  res.clearCookie('email');
-  res.redirect("/urls");
+  res.clearCookie('user_id');
+  res.redirect("/login");
 })
 
 app.set("view engine","ejs");
