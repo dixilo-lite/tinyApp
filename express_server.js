@@ -10,7 +10,7 @@ var cookieSession = require('cookie-session');
 const { createNullProtoObjWherePossible } = require("ejs/lib/utils");
 
 // middleware
-//app.use(cookieParser());
+
 app.use(cookieSession({
   name:'session',
   keys:['key1','key2']
@@ -77,8 +77,6 @@ app.post("/login", (req,res) => {
   const id = findUserID(email,users);
   const foundUser= getUserbyEmail(email,users);
   const hashedPassword = users[id].hashedPassword;
-  console.log(`this is bcrypt`,typeof( bcrypt.compareSync(password,hashedPassword)));
-
 
   if(!foundUser || bcrypt.compareSync(password,hashedPassword) === false)
   {
@@ -93,7 +91,6 @@ app.post("/login", (req,res) => {
 
 app.get("/urls", (req,res) => {
   const id = req.session.user_id;
-  console.log('id within /urls get req ',id);
   const personalizedUrlList = urlsForUser(id,urlDatabase);
   if(id){
 
@@ -108,7 +105,7 @@ app.get("/urls", (req,res) => {
   
   res.send("Please login to view shortened urls");
 }
-//res.render("urls_index",templateVars);
+
 });
 
 app.post("/urls", (req,res) => {
@@ -171,7 +168,6 @@ app.post("/register", (req,res) => {
     hashedPassword,
   };
    
-  console.log(users);
   req.session.user_id= id;
   res.redirect("/urls");
 });
