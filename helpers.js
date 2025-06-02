@@ -23,19 +23,4 @@ const generateRandomString= () => {
   return result;
 }
 
-const testUsers = {
-  "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
-  },
-  "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
-    password: "dishwasher-funk"
-  }
-};
-
-console.log(getUserbyEmail("user@example.co", testUsers));
-
 module.exports= {getUserbyEmail, generateRandomString };
