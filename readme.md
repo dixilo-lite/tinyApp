@@ -4,8 +4,8 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-!["new TinyURL creation page"](https://github.com/dixilo-lite/tinyApp/blob/master/2025-06-01%2023_52_13-NVIDIA%20GeForce%20Overlay.png)
-!["page containing the database of urls"](https://github.com/dixilo-lite/tinyApp/blob/master/2025-06-01%2023_53_03-NVIDIA%20GeForce%20Overlay.png)
+!["new TinyURL creation page"](https://github.com/dixilo-lite/tinyApp/blob/master/docs/2025-06-01%2023_52_13-NVIDIA%20GeForce%20Overlay.png)
+!["page containing the database of urls"](https://github.com/dixilo-lite/tinyApp/blob/master/docs/2025-06-01%2023_53_03-NVIDIA%20GeForce%20Overlay.png)
 
 ## Dependencies
 
