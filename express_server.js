@@ -6,9 +6,16 @@ const {getUserbyEmail} = require("./helper")
 const {findUserID} = require("./findUserID");
 const {urlsForUser} = require("./urlsForUser");
 var cookieParser = require('cookie-parser');
+var cookieSession = require('cookie-session');
+const { createNullProtoObjWherePossible } = require("ejs/lib/utils");
 
 // middleware
-app.use(cookieParser());
+//app.use(cookieParser());
+app.use(cookieSession({
+  name:'session',
+  keys:['key1','key2']
+}))
+
 app.use(express.urlencoded({extended:false}));
 
 //generates random 6 character string
@@ -27,6 +34,7 @@ const users = {
     id: "aJ48lW",
     email: "user@example.com",
     password: "purple-monkey-dinosaur",
+    hashedPassword: bcrypt.hashSync("purple-monkey-dinosaur",10),
   },
   user2RandomID: {
     id: "user2RandomID",
@@ -51,7 +59,7 @@ app.get("/",(req,res) => {
 });
 
 app.get("/login",(req,res) => {
-  const id = req.cookies.user_id;
+  const id = req.session.user_id;
   // if there's an existing user, pass the email and id of the user
   if(id){
     const templateVars= {id, 
@@ -69,6 +77,7 @@ app.post("/login", (req,res) => {
   const id = findUserID(email,users);
   const foundUser= getUserbyEmail(email,users);
   const hashedPassword = users[id].hashedPassword;
+  console.log(`this is bcrypt`,typeof( bcrypt.compareSync(password,hashedPassword)));
 
 
   if(!foundUser || bcrypt.compareSync(password,hashedPassword) === false)
@@ -77,13 +86,14 @@ app.post("/login", (req,res) => {
     .status(403)
     .send("Please enter a valid email or password");
   } else if (foundUser  && bcrypt.compareSync(password,hashedPassword)) {
-    res.cookie('user_id',id);
+    req.session.user_id = id;
     res.redirect("/urls");
   }
 });
 
 app.get("/urls", (req,res) => {
-  const id = req.cookies.user_id;
+  const id = req.session.user_id;
+  console.log('id within /urls get req ',id);
   const personalizedUrlList = urlsForUser(id,urlDatabase);
   if(id){
 
@@ -102,7 +112,7 @@ app.get("/urls", (req,res) => {
 });
 
 app.post("/urls", (req,res) => {
-  let id =req.cookies.user_id;
+  let id =req.session.user_id;
   if(!id)
   {
     res.send("Please login to see shorten urls");
@@ -116,7 +126,7 @@ app.post("/urls", (req,res) => {
 });
 
 app.get("/urls/new", (req,res) => {
-  const id = req.cookies.user_id;
+  const id = req.session.user_id;
   if(id){
    const templateVars = {
     id,
@@ -131,7 +141,7 @@ app.get("/urls/new", (req,res) => {
 });
 
 app.get("/register",(req,res) => {
-  const id = req.cookies.user_id;
+  const id = req.session.user_id;
   const templateVars= {id};
   res.render("register",templateVars);
 });
@@ -161,8 +171,8 @@ app.post("/register", (req,res) => {
     hashedPassword,
   };
    
-  
-  res.cookie("user_id",id);
+  console.log(users);
+  req.session.user_id= id;
   res.redirect("/urls");
 });
 
@@ -172,12 +182,12 @@ app.get("/hello",(req,res) => {
 
 app.get("/urls/:id", (req,res) => {
   let id = req.params.id;
-  let user_id = req.cookies.user_id;
+  let user_id = req.session.user_id;
   if(!urlDatabase[id])
     {
       return res.send('You do not have access to this url.');
     }
-  if (urlDatabase[id].userID !== user_ID) {
+  if (urlDatabase[id].userID !== user_id) {
     res.send("You do not own a url with this ID");
   }
   if(!user_id){
@@ -205,7 +215,7 @@ app.get("/u/:id", (req,res) => {
 
 app.post("/urls/:id/delete", (req,res) =>
 { 
-  const user_ID = req.cookies.user_id;
+  const user_ID = req.session.user_id;
   const id = req.params.id;
   if(!id)
   {
@@ -222,7 +232,7 @@ app.post("/urls/:id/delete", (req,res) =>
 });
 
 app.post("/urls/:id/edit", (req,res) => {
-  const user_ID = req.cookies.user_id;
+  const user_ID = req.session.user_id;
   const id = req.params.id;
   if(!id)
   {
@@ -233,13 +243,12 @@ app.post("/urls/:id/edit", (req,res) => {
     res.send("You do not own a url with this ID");
   } else {
   urlDatabase[id].longURL= req.body.url;
-  console.log(req.body.url);
    res.redirect(`/urls/${id}`);
   }
 });
 
 app.post("/logout", (req,res) => {
-  res.clearCookie('user_id');
+  req.session = null;
   res.redirect("/login");
 })
 
