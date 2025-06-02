@@ -2,10 +2,9 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const bcrypt = require ("bcryptjs");
-const {getUserbyEmail} = require("./helpers")
+const {getUserbyEmail, generateRandomString} = require("./helpers")
 const {findUserID} = require("./findUserID");
 const {urlsForUser} = require("./urlsForUser");
-var cookieParser = require('cookie-parser');
 var cookieSession = require('cookie-session');
 const { createNullProtoObjWherePossible } = require("ejs/lib/utils");
 
@@ -15,20 +14,13 @@ app.use(cookieSession({
   name:'session',
   keys:['key1','key2']
 }))
-
 app.use(express.urlencoded({extended:false}));
 
-//generates random 6 character string
-function generateRandomString() {
-  const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result='';
-  for (let i = 0; i <  6; i ++)
-  {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-}
+app.set("view engine","ejs");
 
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}`);
+});
 const users = {
   aJ48lW: {
     id: "aJ48lW",
@@ -89,17 +81,19 @@ app.post("/login", (req,res) => {
   }
 });
 
+
 app.get("/urls", (req,res) => {
   const id = req.session.user_id;
   const personalizedUrlList = urlsForUser(id,urlDatabase);
+// if there is a session, show the email of the user
   if(id){
-
   const templateVars = {
     id,
     urls: personalizedUrlList,
     user: users[id],
     email: users[id].email,
   }; 
+
   res.render("urls_index",templateVars);
 } else {
   
@@ -148,7 +142,7 @@ app.post("/register", (req,res) => {
   const email = req.body.email;
   const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password,10);
-  if (!email || !password){
+  if (!email || !password)  {
     return res
     .status(400)
     .send("Please provide an email and password before you proceed");
@@ -156,7 +150,7 @@ app.post("/register", (req,res) => {
   
   let foundUser = getUserbyEmail(email,users)
 
-  if(foundUser){
+  if(foundUser) {
     return res.status(400).send("User with email exists");
   }
 
@@ -179,14 +173,16 @@ app.get("/hello",(req,res) => {
 app.get("/urls/:id", (req,res) => {
   let id = req.params.id;
   let user_id = req.session.user_id;
-  if(!urlDatabase[id])
-    {
+  //invalid url id 
+  if(!urlDatabase[id])  {
       return res.send('You do not have access to this url.');
     }
+  //users doesn't own the url id
   if (urlDatabase[id].userID !== user_id) {
     res.send("You do not own a url with this ID");
   }
-  if(!user_id){
+  //not logged in
+  if(!user_id)  {
     res.send("Please log in to view the url");
   } else {
    const templateVars = {
@@ -248,9 +244,5 @@ app.post("/logout", (req,res) => {
   res.redirect("/login");
 })
 
-app.set("view engine","ejs");
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}`);
-});
 
