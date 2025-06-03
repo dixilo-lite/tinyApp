@@ -3,7 +3,7 @@ const app = express();
 const PORT = 8080;
 const bcrypt = require("bcryptjs");
 const {getUserbyEmail, generateRandomString, urlsForUser, findUserID} = require("./helpers");
-let cookieSession = require('cookie-session');
+var cookieSession = require('cookie-session');
 const {users, urlDatabase} = require("./database.js");
 
 // middleware
