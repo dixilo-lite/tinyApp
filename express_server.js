@@ -48,13 +48,14 @@ app.post("/login", (req,res) => {
   const id = findUserID(email,users);
   const foundUser = getUserbyEmail(email,users);
   const hashedPassword = users[id].hashedPassword;
+  const passwordCompare = bcrypt.compareSync(password,hashedPassword);
 
-  if (!foundUser || bcrypt.compareSync(password,hashedPassword) === false) {
+  if (!foundUser || passwordCompare === false) {
     res
       .status(403)
       .send("Please enter a valid email or password");
   }
-  if (foundUser  && bcrypt.compareSync(password,hashedPassword)) {
+  if (foundUser  && passwordCompare) {
     req.session.user_id = id;
     res.redirect("/urls");
   }
