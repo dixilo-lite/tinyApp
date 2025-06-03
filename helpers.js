@@ -23,4 +23,42 @@ const generateRandomString= () => {
   return result;
 }
 
-module.exports= {getUserbyEmail, generateRandomString };
+const urlsForUser = (id , urlDatabase) =>{
+  let personalizedUrlList={};
+  for (const url in urlDatabase)
+  {
+    if(urlDatabase[url].userID === id)
+    {
+      const shortKey={
+        longURL:urlDatabase[url].longURL,
+        userID: urlDatabase[url].userID,
+      }
+      personalizedUrlList[url] = shortKey;
+    }
+  }
+return personalizedUrlList;
+}
+
+const findUserID = (email,users) =>{
+
+  for (const user in users) {
+    if(users[user].email === email){
+      return user;
+    }
+  }
+  return false;
+}
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
+module.exports= {getUserbyEmail, generateRandomString, urlsForUser, findUserID };
