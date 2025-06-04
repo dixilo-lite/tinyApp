@@ -21,6 +21,7 @@ app.listen(PORT, () => {
 
 app.get("/",(req,res) => {
   const id = req.session.user_id;
+  const email = req.session.email;
   if (id) {
     res.redirect("/urls");
   } else {
